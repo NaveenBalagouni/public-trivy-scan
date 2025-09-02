@@ -212,7 +212,99 @@ Make GitHub check for secrets every time someone makes or updates a pull request
            id: trivy-secrets
            run: |
              trivy fs --scanners secret --exit-code 1 --format table .
+
+
+
    ```
+
+
+---
+
+
+   ### . Workflow Name 
+   name: Secret Scan with Trivy on PR  //  This is the name of the workflow. It tells you what the workflow does — it checks for secrets in your code.
+
+```
+
+---
+
+ ### . When to Run the Workflow
+
+
+This means the workflow runs every time someone opens or changes a **pull request** to the `main` branch.
+
+```yaml
+
+on:
+  pull_request:
+    branches:
+      - main
+```
+---
+
+### Define the Job
+
+```yaml
+
+* This creates a job named `trivy-secret-scan`.
+* It runs on a computer with the latest Ubuntu operating system.
+* The job will run the secret scan.
+
+jobs:
+  trivy-secret-scan:
+    runs-on: ubuntu-latest
+    name: Run Trivy Secret Scan on PR
+```
+
+---
+
+###  Checkout Code Step
+
+```yaml
+* This step copies your pull request’s code so the workflow can check it.
+
+steps:
+  - name: Checkout PR code
+    uses: actions/checkout@v3
+```
+
+---
+
+### . Install Trivy Step
+
+```yaml
+
+* This step installs the Trivy tool, which finds secrets in your code.
+* It runs commands to prepare the computer and then install Trivy.
+
+  - name: Install Trivy
+    run: |
+      sudo apt-get update
+      sudo apt-get install -y wget apt-transport-https gnupg lsb-release
+      wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+      echo deb https://aquasecurity.github.io/trivy-repo/deb "$(lsb_release -sc)" main | sudo tee -a /etc/apt/sources.list.d/trivy.list
+      sudo apt-get update
+      sudo apt-get install -y trivy
+```
+
+
+---
+
+### . Run Trivy Secret Scan Step
+
+```yaml
+* This step runs Trivy to scan your code folder (`.`).
+* It looks only for secrets like passwords or keys.
+* If Trivy finds secrets, it will **fail the check** (exit code 1).
+* The results are shown in a simple table.
+
+  - name: Run Trivy Secret Scan
+    id: trivy-secrets
+    run: |
+      trivy fs --scanners secret --exit-code 1 --format table .
+```
+
+
 
 3. Then I saved the file and ran these commands to upload it to GitHub:
 
